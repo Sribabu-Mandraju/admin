@@ -85,8 +85,9 @@ form.resource-form input::placeholder{
   bottom: -2px;
   left: 0;
   content: "";
-  width: 100%;
+  width: 80%;
   height: 3px;
+  margin-left: 10px;
   border-radius: 10px;
   background-color: #006996;
 }
@@ -218,7 +219,10 @@ button.download:hover{
   height: 250px;
   z-index: 3;
   border-radius: 7px;
-  right: -150px;
+  right: -0px;
+  top:30px;
+  opacity: 0;
+  transition-duration: 1s;
 } 
 @media (max-width:700px) {
   .profile-menu{
@@ -235,6 +239,8 @@ button.download:hover{
 }
 .prof-icon:hover .profile-menu{
   display: block;
+  top:0px;
+  opacity: 1;
 }
 tr:hover{
   background-color: grey;
@@ -252,4 +258,10 @@ label{
 .red{
   color:red;
 }
-
+.hover-effect{
+  transition-duration: 0.5s;
+}
+.hover-effect:hover{
+  background-color: #c8ffff;
+  color: black;
+}

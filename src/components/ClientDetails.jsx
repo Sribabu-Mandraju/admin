@@ -9,12 +9,27 @@ import { PiCaretUpDownThin } from "react-icons/pi";
 import image404 from "../assets/404.png"
 import { FaRegUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaUserTag, FaCalendarAlt, FaBuilding, FaFileAlt } from 'react-icons/fa';
 import { RiDeleteBin6Line } from "react-icons/ri";
+import axios from "axios"
 
 
 
 
 
 const ClientDetails = () => {
+    const [userToken,setUserToken] = useState("")
+    const [clientData,setClientData] = useState({})
+    const [loading, setLoading] = useState(true); 
+    const {  clientId } = useParams(); 
+    const clientDataInfo = [
+        { title: "Name", icon: <FaRegUser />, value: clientData.name },
+        { title: "Email", icon: <FaEnvelope />, value: clientData.email },
+        { title: "Phone", icon: <FaPhone />, value: clientData.conctact },
+        { title: "Address", icon: <FaMapMarkerAlt />, value: "123 Main St, City, Country" },
+        { title: "Client Type", icon: <FaUserTag />, value: "Premium" },
+        { title: "Date Registered", icon: <FaCalendarAlt />, value: "2023-01-01" },
+        { title: "Company", icon: <FaBuilding />, value: clientData.company },
+        { title: "Total Requests", icon: <FaFileAlt />, value: "50" }
+      ];
 
     const dataDocs = [
         { id: 1, title: "Response one", email: "user1@example.com", postedBy: "u3tech", status: "approved" },
@@ -62,26 +77,47 @@ const ClientDetails = () => {
         { id: 20, title: "Response twenty", date: "28/08/2023", postedBy: "u3tech", status: "pending" },
       ];
 
+      useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const getToken = localStorage.getItem("token");
+            console.log("Token:", getToken); // Log token for debugging
+            setUserToken(getToken);
+      
+            const response = await axios.get(`http://localhost:8080/admin/client/${clientId}`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${userToken}`
+              }
+            });
+      
+            console.log("Response:", response.data); // Log response data for debugging
+      
+            if (response.status !== 200) {
+              throw new Error('Network response was not ok');
+            }
+      
+            setClientData(response.data);
+            setLoading(false);
+          } catch (err) {
+            console.error(err);
+          }
+        };
+      
+        fetchData();
+      }, [userToken]);
+      console.log(clientId)
 
     const DetailsClient = () => {
-        const clientData = [
-            { title: "Name", icon: <FaRegUser />, value: "sribabu" },
-            { title: "Email", icon: <FaEnvelope />, value: "sribabumandraju@gmail.com" },
-            { title: "Phone", icon: <FaPhone />, value: "+91 63037 38847" },
-            { title: "Address", icon: <FaMapMarkerAlt />, value: "123 Main St, City, Country" },
-            { title: "Client Type", icon: <FaUserTag />, value: "Premium" },
-            { title: "Date Registered", icon: <FaCalendarAlt />, value: "2023-01-01" },
-            { title: "Company", icon: <FaBuilding />, value: "Microsoft" },
-            { title: "Total Requests", icon: <FaFileAlt />, value: "50" }
-          ];
+       
           
         return (
             <>
                 <div className="w-100 d-flex flex-column">
                     {
-                        clientData.map((data)=> (
+                        clientDataInfo.map((data)=> (
                             <div className="row w-100 ps-3 py-2">
-                                <div className="col-12 col-sm-5 col-md-2 d-flex align-items-center" style={{color:"grey"}}>{data.icon}<span className="ps-2">{data.title}</span> </div>
+                                <div className="col-12 col-sm-5 col-md-4 d-flex align-items-center" style={{color:"grey"}}>{data.icon}<span className="ps-2" style={{minWidth:"120px"}}>{data.title}</span> </div>
                                 <div className="col-12 col-sm-7 col-md-8" style={{color:"#006996",fontWeight:"700"}}>{data.value}</div>
                             </div>
                         ))
@@ -181,19 +217,28 @@ const ClientDetails = () => {
         )
     }
 
+ 
+
+
     
     const [tab,setTab] = useState("Details")
     const {clientName} = useParams()
 
-      const client = data.find(u => u.title === clientName)
-      if (!client) {
-        return <div>User not found</div>;
-      }
+
       const handleTab = (tabname) => {
         setTab(tabname)
       }
       const goback = () => {
         window.history.back()
+      }
+      if (loading) {
+        return (
+          <>
+            <div className="d-flex justify-content-center align-items-center" style={{height:"100vh"}}>
+              <div className="">Loading...</div>
+            </div>
+          </>
+        );
       }
     return (
         <>
@@ -215,20 +260,14 @@ const ClientDetails = () => {
                     <div className="breadcrumb-item h4">
                         <Link to="/clients" style={{textDecoration:"none"}}>Clients</Link>
                     </div>
-                    <div className="breadcrumb-item h4" style={{textDecoration:"none"}}>{client.title}</div>
+                    <div className="breadcrumb-item h4" style={{textDecoration:"none"}}>{clientData.name}</div>
                 </div>
                 <div className="w-100 gap-2 row" style={{margin:"0px 0px",}}>
-                    <div className="col-11 col-md-6 col-lg-8 mx-auto   d-flex flex-column shadow" style={{
+                    <div className="col-11 col-md-6 col-lg-6 mx-auto   d-flex flex-column shadow" style={{
                         height:"auto",
                         minHeight:"70vh"
                     }}>
                         <div className="w-100 d-flex align-items-center mt-3 justify-content-start" style={{minWidth:"300px",overflowX:"scroll",height:"50px"}}>
-                            <div className={`mx-3 ${tab=="Details"?"tab-active":""}`} onClick={()=>{setTab("Details")}}>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <span className="px-2">Details</span>
-                                    <PiCaretUpDownThin /> 
-                                </div>
-                            </div>
                             <div className={`mx-3 ${tab=="Edit"?"tab-active":""}`} onClick={()=>{setTab("Edit")}}>
                                 <div className="d-flex justify-content-between align-items-center">
                                     <span className="px-2">Edit</span>
@@ -277,32 +316,16 @@ const ClientDetails = () => {
                             paddingTop:"2px"
                         }}/>
                         <div className="w-100">
-                        {tab == "Details" && <DetailsClient />}
                         {tab== "Documents" && <DocumentsClient />}
                         {tab=="Emails" && <ClientEmail />}
                         {tab=="Edit" && <EditData />}
                         {tab=="Activities" && <ClientActivities />}
                     </div>
                     </div>
-                    <div className=" col-11 col-md-5 col-lg-3  mx-auto card d-flex flex-column shadow" style={{
-                       height:"350px"
-                    }}>
-                        <div className="mx-auto my-3 d-flex justify-content-center align-items-center" style={{
-                            width:"150px",
-                            height:"150px",
-                            borderRadius:"50%",
-                            overflow:"hidden"
-                        }}
-                        >
-                            <img src={c1} alt="" />
-                        </div>
-                        <div className="w-100 text-center pt-2" style={{fontWeight:"700",fontSize:"25px",color:"rgb(0, 105, 150)"}}>{client.title}</div>
-                        <div className="w-100 text-center" style={{color:"grey"}}>sribabumandraju@gmail.com</div>
-                        <div className="w-100 text-center">
-                            <span><FaBuilding /> <span>Company name</span> <span style={{fontSize:"30px"}}>|</span> <FaPhone /> <span>+91 63037 38847</span> </span>
-                        </div>
-                        <div className="w-100">
-                        </div>
+                    <div className=" col-11 col-md-5 col-lg-5  mx-auto card d-flex flex-column shadow" style={{
+                    }}> 
+                        <h1 className="h1 m-3 px-2" style={{fontWeight:"700",borderLeft:"8px solid #006996"}}>Client Details</h1>
+                        <DetailsClient />
                     </div>
                     
                     

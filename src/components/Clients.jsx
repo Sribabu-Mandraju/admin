@@ -8,10 +8,37 @@ import { IoMdPersonAdd } from "react-icons/io";
 import { FaCircleInfo } from "react-icons/fa6";
 import CustomModal2 from "./Modal2";
 import '../App.css'
+import {Link,useNavigate} from "react-router-dom"
 import c from '../assets/b party.png'
-import {Link} from 'react-router-dom'
+import { RiExpandUpDownFill } from "react-icons/ri";
+import { RiDeleteBin6Line } from "react-icons/ri";
+import axios from 'axios'
+import CreateClient from "./createClient";
+
+
 
 const Clients = () => {
+  const Navigate = useNavigate()
+
+
+
+  const navigate = useNavigate()
+  const [filter,setFilter] = useState("all");
+  const [loading, setLoading] = useState(true); 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [userToken,setUserToken] = useState("")
+  const [clientsData,setClientsData] = useState([])
+  const [clientID,setClientID] = useState("")
+  const clients = [
+    {title:"Name",minWidth:"200px"},
+    {title:"Email",minWidth:"120px"},
+    {title:"Company",minWidth:"120px"},
+    {title:"Created Date",minWidth:"60px"},
+    {title:"Phone",minWidth:"70px"},
+    {title:"Client Type",minWidth:"120px"},
+    {title:"Delete",minWidth:"40px"},
+    
+  ]
   const [currentPage, setCurrentPage] = useState(1);
   const [width,setWidth] = useState(window.innerWidth)
   const itemsPerPage = 10;
@@ -21,45 +48,50 @@ const Clients = () => {
 
   useEffect(()=>{
     window.addEventListener('resize',handleWidth)
+
   },[])
 
 
-  const data = [
-    { id: 1, title: "Response one", email: "user1@example.com", postedBy: "u3tech", status: "approved" },
-    { id: 2, title: "Response two", email: "user2@example.com", postedBy: "u3tech", status: "pending" },
-    { id: 3, title: "Response three", email: "user3@example.com", postedBy: "u3tech", status: "rejected" },
-    { id: 4, title: "Response four", email: "user4@example.com", postedBy: "u3tech", status: "approved" },
-    { id: 5, title: "Response five", email: "user5@example.com", postedBy: "u3tech", status: "pending" },
-    { id: 6, title: "Response six", email: "user6@example.com", postedBy: "u3tech", status: "rejected" },
-    { id: 7, title: "Response seven", email: "user7@example.com", postedBy: "u3tech", status: "approved" },
-    { id: 8, title: "Response eight", email: "user8@example.com", postedBy: "u3tech", status: "pending" },
-    { id: 9, title: "Response nine", email: "user9@example.com", postedBy: "u3tech", status: "rejected" },
-    { id: 10, title: "Response ten", email: "user10@example.com", postedBy: "u3tech", status: "approved" },
-    { id: 11, title: "Response eleven", email: "user11@example.com", postedBy: "u3tech", status: "pending" },
-    { id: 12, title: "Response twelve", email: "user12@example.com", postedBy: "u3tech", status: "rejected" },
-    { id: 13, title: "Response thirteen", email: "user13@example.com", postedBy: "u3tech", status: "approved" },
-    { id: 14, title: "Response fourteen", email: "user14@example.com", postedBy: "u3tech", status: "pending" },
-    { id: 15, title: "Response fifteen", email: "user15@example.com", postedBy: "u3tech", status: "rejected" },
-    { id: 16, title: "Response sixteen", email: "user16@example.com", postedBy: "u3tech", status: "approved" },
-    { id: 17, title: "Response seventeen", email: "user17@example.com", postedBy: "u3tech", status: "pending" },
-    { id: 18, title: "Response eighteen", email: "user18@example.com", postedBy: "u3tech", status: "rejected" },
-    { id: 19, title: "Response nineteen", email: "user19@example.com", postedBy: "u3tech", status: "approved" },
-    { id: 20, title: "Response twenty", email: "user20@example.com", postedBy: "u3tech", status: "pending" },
-  ];
+
+
+
+
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const getToken = localStorage.getItem("token");
+        console.log("Token:", getToken); // Log token for debugging
+        setUserToken(getToken);
+  
+        const response = await axios.get("http://localhost:8080/admin/client/all-clients", {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${userToken}`
+          }
+        });
+  
+        console.log("Response:", response.data); // Log response data for debugging
+  
+        if (response.status !== 200) {
+          throw new Error('Network response was not ok');
+        }
+  
+        setClientsData(response.data);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+  
+    fetchData();
+  }, [userToken]);
+
+
   
       
-      
+ 
 
-  const totalItems = data.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = data.slice(startIndex, endIndex);
-
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-  };
 
   const [showModal, setShowModal] = useState(false);
   const [showModal2,setShowModal2] = useState(false)
@@ -79,6 +111,15 @@ const Clients = () => {
     setShowModal2(false);
   };
 
+  if (loading) {
+    return (
+      <>
+        <div className="d-flex justify-content-center align-items-center" style={{height:"100vh"}}>
+          <div className="">Loading Clients information...</div>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <section
@@ -89,69 +130,73 @@ const Clients = () => {
         }}
       >
         <div className="w-100  d-flex align-items-center py-3" style={{ color: "#006996" }}>
-          <MdOutlineGroups style={{ fontSize: "20px" }} />
+          <MdOutlineGroups style={{ fontSize: "25px" }} />
           <div className="h4 px-2">Clients</div>
         </div>
         <div className="table-responsive table-striped w-100  mt-4" style={{ height: "auto", overflow: "" }}>
           <div className="d-flex align-items-center justify-content-between mb-3 " style={{position:"sticky",left:"0"}}>
             <div className="mx-2 d-flex align-items-center">
               <FiSearch style={{ marginRight: "-20px", zIndex: "1" }} />
-              <input type="text" placeholder="search......." className="py-1 ps-4" style={{ borderRadius: "5px", border: "0.3px solid grey" }} />
+              <input type="text" placeholder="search......." className="py-1 ps-4" style={{ borderRadius: "5px", border: "0.3px solid grey" }} onChange={e => setSearchQuery(e.target.value)} />
             </div>
-            <button className="btn btn-primary mx-2  " onClick={openModal2} style={{marginRight:""}}><IoMdPersonAdd/><span className="px-1">{width>600?"Add":""}</span></button>
+            <button className="btn btn-primary mx-2  " onClick={openModal2} style={{marginRight:""}}><IoMdPersonAdd/><span className="px-1">{width>600?"Create Client":"Add"}</span></button>
             <CustomModal2 showModal2={showModal2} closeModal2={closeModal2}>
-              <form action="">
-                <label htmlFor="name" className="form-label">Name<sup className="red">*</sup></label>
-                <input type="text" className="form-control" placeholder="enter client name" />
-                <label htmlFor="name" className="form-label">Company<sup className="red">*</sup></label>
-                <input type="text" className="form-control" placeholder="enter client Company" />
-                <label htmlFor="name" className="form-label">Password<sup className="red">*</sup></label>
-                <input type="text" className="form-control" placeholder="enter client Password" />
-                <label htmlFor="name" className="form-label">Email<sup className="red">*</sup></label>
-                <input type="text" className="form-control" placeholder="enter client Email" />
-                <label htmlFor="name" className="form-label">Number<sup className="red">*</sup></label>
-                <input type="text" className="form-control" placeholder="enter client phone" />
-                <div className="w-100 d-flex align-items-center  my-3 justify-content-center">
-                  <button className="btn btn-success"><GoFileSubmodule /><span className="px-2">Submit</span></button>
-                </div>
-              </form>
+                  <CreateClient />
             </CustomModal2>
           </div>
           <div className={`w-100 d-flex ${width>700?"justify-content-between":"justify-content-around"} align-items-center flex-wrap`}>
-            {
-              currentItems.map((i)=> (
-                <div className="card d-flex flex-column my-2 mx-2" style={{
-                  width:"99%",
-                  maxWidth:"300px",
-                  
-                }}>
-                  <img src={c} alt="" style={{
-                    width:"100%",
-                    height:"250px"
-                  }} />
-                  <div className="w-100 text-center pt-2" style={{fontWeight:"700",fontSize:"25px"}}>{i.title}</div>
-                  <div className="w-100 text-center" style={{color:"grey"}}>sribabumandraju@gmail.com</div>
-                  <w className="w-100 d-flex justify-content-center">
-                    <Link style={{
-                      textDecoration:"none"
-                    }} to={`/clients/${i.title}`}>
-                      <button className="btn btn-secondary mx-auto my-3 px-5 d-flex align-items-center">
-                        <span className="px-2">View info</span>
-                        <span><FaCircleInfo /></span>
-                      </button>
-                    </Link>
-                  </w>
+          <div className="d-flex flex-column mx-auto" style={{width:"100%",minWidth:"350px",overflowX:"scroll"}}>
+            <div className="w-100 d-flex align-items-center flex-column   justify-content-center" style={{minWidth:"1000px"}}>
+              <div className="d-flex justify-content-around bg-dark text-white align-items-center  mb-2  py-1 shadow" style={{width:"100%",minWidth:"950px",height:"50px"}}>
+                <div className="">S.no</div>
+                <div className="d-flex align-items-center" style={{minWidth:"200px"}}>
+                  <span className="pe-4">Client</span>
+                  <RiExpandUpDownFill /> 
                 </div>
-              ))
-            }
+                <div className="d-flex align-items-center" style={{minWidth:"140px"}}>
+                  <span className="pe-4">Email</span>
+                  <RiExpandUpDownFill /> 
+                </div>
+                <div className="d-flex align-items-center" style={{minWidth:"170px"}}>
+                  <span className="pe-4">Phone</span>
+                  <RiExpandUpDownFill /> 
+                </div>
+                <div className="d-flex align-items-center" style={{minWidth:"100px"}}>
+                  <span className="pe-4">Delete</span>
+                  <RiExpandUpDownFill /> 
+                </div>
+
+              </div>
+              {
+                clientsData.map((data,index)=> (
+                  <div className="d-flex justify-content-around align-items-center hover-effect cursor-pointer border  my-2  py-4 shadow" style={{width:"100%",minWidth:"950px",height:"50px",cursor:"pointer"}} onClick={() =>{
+                    setClientID(data._id)
+                    console.log(clientID)
+                    if(clientID != ""){
+                      navigate(`/clients/${clientID}`)
+                    }
+                  }}>
+                        <div className="">{index+1}</div>
+                        <div className="d-flex align-items-center" style={{minWidth:"200px"}}>
+                          {data.name}
+                        </div>
+                        <div className="d-flex align-items-center" style={{minWidth:"140px"}}>
+                          {data.email}
+                        </div>
+                        <div className="d-flex align-items-center" style={{minWidth:"170px"}}>
+                          {data.contact}
+                        </div>
+                        <div className={`  pe-4 d-flex align-items-center `} style={{minWidth:"100px"}}>
+                          <button className="btn btn-outline-danger"><RiDeleteBin6Line /></button>
+                        </div>
+                  </div>
+                ))
+              }
+              
+            </div>
           </div>
-          <div className="pagination d-flex justify-content-center" style={{position:"sticky",left:"0"}}>
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button key={index + 1} onClick={() => handlePageChange(index + 1)} className={`${currentPage === index + 1 ? "active mx-2 p-2 " : "mx-2 p-2"} ${currentPage == index +1?"bg-primary":"bg-white"}`} style={{borderRadius:"7px"}}>
-                {index + 1}
-              </button>
-            ))}
           </div>
+         
         </div>
       </section>
     </>

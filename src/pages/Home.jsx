@@ -35,6 +35,7 @@ import LOGO from '../assets/logo.png'
 
 const Home = () => {
   const [userToken,setUserToken] = useState("")
+  const [userData,setUserData] = useState({})
   const tabs = [ 
     {tab:"dashboard",tabName:"Dashboard",icon:<AiOutlineDashboard />},
     {tab:"documentsList",tabName:"Documents",icon:<AiFillFolder />},
@@ -44,6 +45,7 @@ const Home = () => {
   const [tab, setTab] = useState('dashboard');
   const [width, setWidth] = useState(window.innerWidth);
   const [side, setSide] = useState(false);
+  const [loading, setLoading] = useState(true); 
   const navigate = useNavigate();
 
 
@@ -74,38 +76,54 @@ const Home = () => {
     };
   }, [side]);
 
-  useEffect(()=>{
-    const getToken = localStorage.getItem("token")
-    setUserToken(getToken)
+  useEffect(() => {
     const fetchData = async () => {
       try {
+        const getToken = localStorage.getItem("token");
+        console.log("Token:", getToken); // Log token for debugging
+        setUserToken(getToken);
+  
         const response = await axios.get("http://localhost:8080/admin/adminInfo", {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `${userToken}`
           }
         });
-    
+  
+        console.log("Response:", response.data); // Log response data for debugging
+  
         if (response.status !== 200) {
           throw new Error('Network response was not ok');
         }
-    
-        const result = await response.json();
-        setUserData(result);
-        console.log(result);
+  
+        setUserData(response.data);
+        setLoading(false);
       } catch (err) {
         console.error(err);
       }
     };
-    fetchData()
-  },[userToken])
+  
+    fetchData();
+  }, [userToken]);
+
+  if (loading) {
+    return (
+      <>
+        <div className="d-flex justify-content-center align-items-center" style={{height:"100vh"}}>
+          <div className="">Loading...</div>
+        </div>
+      </>
+    );
+  }
+  
   
   return (
     <>
      
+    <section className="w-100" style={{height:"100vh"}}>
     <div className="d-flex justify-content-between align-items-center shadow w-100" style={{ height: '50px',backgroundColor:"#e6f2ff" }}>
       <div className="d-flex align-items-center">
-        <button className="btn" onClick={handleSide}>
+        <button className="btn mx-2" onClick={handleSide}>
           <PiListFill />
         </button>
         <img src={LOGO} alt="" style={{height:"40px"}} />
@@ -114,10 +132,7 @@ const Home = () => {
         {
           width>700?
           <>
-             <div className="mx-2 d-flex align-items-center">
-              <FiSearch style={{marginRight:"-20px",zIndex:"1"}}/>
-              <input type="text" placeholder="search......." className="py-1 ps-4" style={{borderRadius:"5px",border:"0.3px solid grey"}} />
-            </div>
+            
           </>:<> 
            </>
         }
@@ -129,7 +144,7 @@ const Home = () => {
         </button>
         
         <div className="prof-icon bg-warning mx-2 d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px',borderRadius:'50%',position:"relative"}}>
-          <h3>s</h3>
+          <h6>{userData.name[0].toUpperCase()}</h6>
           <div className="profile-menu shadow" style={{position:"absolute",top:"25px"}}>
             <div className="d-flex w-100 flex-column">
                 <div className="border d-flex justify-content-center align-items-center bg-warning mt-2 mx-auto" 
@@ -139,7 +154,7 @@ const Home = () => {
                   borderRadius:"50%"
 
                   }}>
-                    <h1 style={{fontSize:"70px"}}>S</h1>
+                    <h3 style={{fontSize:"70px"}}>{userData.name[0].toUpperCase()}</h3>
                   </div>
                   <div className="w-100 d-flex justify-content-around align-items-center">
                     <button className="btn btn-primary">View profile</button>
@@ -151,7 +166,7 @@ const Home = () => {
               </div>
           </div>
         </div>
-        {width>700?<><div className="prof-name mx-2" style={{fontWeight:"700",color:"#006996"}}>Sribabu Mandraju</div></>:<></>}
+        {width>700?<><div className="prof-name me-3" style={{fontWeight:"700",color:"#006996"}}>{userData.name}</div></>:<></>}
       </div>
     </div>
     <div className="w-100 d-flex" style={{ position: 'relative' }}>
@@ -191,9 +206,9 @@ const Home = () => {
             <div className="w-100 d-flex justify-content-between mt-3 align-items- mb-3">
                 <div className="d-flex flex-column ps-4">
                   <img src={LOGO} alt="" style={{height:"60px"}} />
-                  <div className="" style={{color:"#006996",fontWeight:"700"}}>Techbuggy Pvt Ltd.</div>
+                  <div className="" style={{color:"#006996",fontWeight:"700"}}>U3Tech Pvt Ltd.</div>
                 </div>
-                <div className=" badge text-dark   d-flex  p-3" style={{ flexDirection: "row-reverse",cursor:"pointer",marginTop:"-30px",marginRight:"-15px" }} onClick={() => {
+                <div className=" badge text-dark   d-flex  p-3" style={{ flexDirection: "row-reverse",cursor:"pointer",marginTop:"-20px",marginRight:"-10px" }} onClick={() => {
                   setSide(false);
                   }}>
                     <MdClose style={{fontSize:"40px"}} />
@@ -231,6 +246,7 @@ const Home = () => {
       </div>
 
     </div>
+    </section>
 
     </>
   );
