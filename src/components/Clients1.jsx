@@ -115,7 +115,7 @@ const Clients = () => {
                         Info
                     </button>
                     <CustomModal showModal={showModal} closeModal={closeModal}>
-                        <p>This is custom content inside the modal.</p>
+                        <p>This is custom content inside the modal.</p> 
                         <p>Add more elements as needed.</p>
                     </CustomModal>
                   </td>

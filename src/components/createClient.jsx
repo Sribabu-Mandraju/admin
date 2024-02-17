@@ -18,6 +18,7 @@ const CreateClient = () => {
         setCreateClient(formData)
       }
       const handleSubmit = async (e) => {
+        e.preventDefault()
         try {
             const response = await axios.post(
                 'http://localhost:8080/client/signup',
@@ -29,7 +30,7 @@ const CreateClient = () => {
                 }
             );
             if (response.status === 200) {
-                Navigate("/home")
+                window.location.reload(); 
             }
         } catch (err) {
             console.log(err);
@@ -76,7 +77,7 @@ const CreateClient = () => {
                     <span className="mt-3 w-100">
                         <input type="submit" value="Create Client" className="w-100" style={{ backgroundColor: '#006996', color: 'white' }} />
                     </span>
-                  </form>
+            </form>
         </>
     )
 }

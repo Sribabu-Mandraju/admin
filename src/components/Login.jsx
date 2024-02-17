@@ -1,7 +1,9 @@
 import { useState ,useEffect} from 'react';
 import '../App.css';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'
+import axios from 'axios';
+import Modal from './Modal'; 
+import CustomModal from './Modal';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -9,6 +11,31 @@ const Login = () => {
     Email: "",
     Password: "",
   });
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [showModal, setShowModal] = useState(false); // State to control modal display
+
+  const openModal = () => {
+    setShowModal(true);
+  };
+
+  const getPdf = async () => {
+    try {
+      const response = await axios.post("http://localhost:8080/client/getPdfByEmail", { "useremail": email }, { responseType: 'json' });
+      const pdfData = response.data[0].pdffile.Data; 
+      const decodedPdfData = atob(pdfData);
+      const uint8Array = new Uint8Array(decodedPdfData.length);
+      for (let i = 0; i < decodedPdfData.length; i++) { 
+        uint8Array[i] = decodedPdfData.charCodeAt(i);
+      }
+      const pdfBlob = new Blob([uint8Array], { type: 'application/pdf' });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      setPdfUrl(pdfUrl);
+    } catch (error) {
+      console.error("Error:", error);
+      setError("Failed to fetch PDF file");
+    }
+  };
+
 
   const handleChange = (e) => {
     const formData = { ...values };
@@ -18,22 +45,28 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(values)
 
     try {
       const response = await axios.post("http://localhost:8080/admin/login", values);
 
-      if (response.status == 200) {
-        const token = response.data.token
-        localStorage.setItem("token",token)
-        navigate("/home")
-        
+      if (response.status === 200) {
+        const token = response.data.token;
+        const email = response.data.email
+        localStorage.setItem("token", token);
+        localStorage.setItem("email",email)
+        setLoginSuccess(true);
+        setShowModal(true); // Show the modal when login is successful
+        navigate("/home");
       } else {
         alert("Login failed");
       }
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const closeModal = () => {
+    setShowModal(false); 
   };
 
   return (
@@ -97,6 +130,11 @@ const Login = () => {
             />
           </span>
         </form>
+        {showModal && 
+        <CustomModal showModal={showModal} closeModal={closeModal}>
+            <p>This is custom content inside the modal.</p>
+            <p>Add more elements as needed.</p>
+        </CustomModal>} 
       </section>
     </>
   );

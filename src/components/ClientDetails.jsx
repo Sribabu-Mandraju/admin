@@ -10,16 +10,106 @@ import image404 from "../assets/404.png"
 import { FaRegUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaUserTag, FaCalendarAlt, FaBuilding, FaFileAlt } from 'react-icons/fa';
 import { RiDeleteBin6Line } from "react-icons/ri";
 import axios from "axios"
+import { RiExpandUpDownFill } from "react-icons/ri";
+
 
 
 
 
 
 const ClientDetails = () => {
+    const [right,setRight]  = useState("details")
+    const [dataArray,setDataArray] = useState([])
     const [userToken,setUserToken] = useState("")
     const [clientData,setClientData] = useState({})
     const [loading, setLoading] = useState(true); 
     const {  clientId } = useParams(); 
+
+    const [pdfUrls, setPdfUrls] = useState([]);
+    const [error, setError] = useState(null);
+    const [email,setEmail] = useState("")
+
+    const [edit,setEdit] = useState({
+        name:"",
+        email:"",
+        contact:""
+    })
+
+    const handleChange = (e) => {
+        const formData = {...createClient}
+        formData[e.target.name] = e.target.value
+        setCreateClient(formData)
+      }
+      useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const getToken = localStorage.getItem("token");
+                setUserToken(getToken);
+    
+                const response = await axios.get(`http://localhost:8080/admin/client/${clientId}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `${userToken}`
+                    }
+                });
+    
+                if (response.status !== 200) {
+                    throw new Error('Network response was not ok');
+                }
+    
+                setClientData(response.data);
+                setLoading(false);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+    
+        fetchData();
+    }, [userToken]);
+    
+    useEffect(() => {
+        if (clientData.email) {
+            getPdf();
+        }
+    }, [clientData.email]);
+
+    useEffect(() => {
+        console.log(email);
+    }, [email]);
+      console.log(clientId)
+
+      const getPdf = async () => {
+        try {
+          const response = await axios.post("http://localhost:8080/client/getPdfByEmail", { "useremail": clientData.email }, { responseType: 'json' });
+          const responseArray = response.data
+          setDataArray(responseArray)
+          const pdfDataArray = response.data.map(pdf => {
+            const pdfData = pdf.pdffile.Data;
+            const decodedPdfData = atob(pdfData);
+            const uint8Array = new Uint8Array(decodedPdfData.length);
+            for (let i = 0; i < decodedPdfData.length; i++) {
+              uint8Array[i] = decodedPdfData.charCodeAt(i);
+            }
+            const pdfBlob = new Blob([uint8Array], { type: 'application/pdf' });
+            return URL.createObjectURL(pdfBlob);
+          });
+          setPdfUrls(pdfDataArray);
+          setLoading(false);
+        } catch (error) {
+          console.error("Error:", error);
+          setError("Failed to fetch PDF files");
+          setLoading(false); 
+        }
+      };
+    
+      useEffect(()=> {
+        getPdf()
+        
+      },[])
+        console.log("me")
+
+
+
     const clientDataInfo = [
         { title: "Name", icon: <FaRegUser />, value: clientData.name },
         { title: "Email", icon: <FaEnvelope />, value: clientData.email },
@@ -77,40 +167,8 @@ const ClientDetails = () => {
         { id: 20, title: "Response twenty", date: "28/08/2023", postedBy: "u3tech", status: "pending" },
       ];
 
-      useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const getToken = localStorage.getItem("token");
-            console.log("Token:", getToken); // Log token for debugging
-            setUserToken(getToken);
-      
-            const response = await axios.get(`http://localhost:8080/admin/client/${clientId}`, {
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `${userToken}`
-              }
-            });
-      
-            console.log("Response:", response.data); // Log response data for debugging
-      
-            if (response.status !== 200) {
-              throw new Error('Network response was not ok');
-            }
-      
-            setClientData(response.data);
-            setLoading(false);
-          } catch (err) {
-            console.error(err);
-          }
-        };
-      
-        fetchData();
-      }, [userToken]);
-      console.log(clientId)
-
     const DetailsClient = () => {
-       
-          
+        
         return (
             <>
                 <div className="w-100 d-flex flex-column">
@@ -130,55 +188,33 @@ const ClientDetails = () => {
     const DocumentsClient = () => {
         return (
             <>
-                <div className="table-responsive  w-100  mt-4" style={{ height: "60vh", overflow: "scroll" }}>
-                    <table
-                        className="resource-content table "
-                        style={{
-                        width: "100%",
-                        minWidth: "340px",
-                        backgroundColor: "#F7FFFF",
-                        boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.25)",
-                        }}
-                    >
-                        <thead className="border" style={{ backgroundColor: " #F4F4F4"}}>
-                        <tr className="text-center bold-2" style={{ textWrap: "nowrap", color: "#006996",position:"sticky"}}>
-                            <td className="ps-2" style={{ color: "#006996" }}>
-                            S.no
-                            </td>
-                            <td className="ps-2" style={{ color: "#006996" }}>
-                            Title
-                            </td>
-                            <td className="ps-2" style={{ color: "#006996" }}>
-                            Date
-                            </td>
-                            <td className="ps-2" style={{ color: "#006996" }}>
-                            Posted by
-                            </td>
-                            <td className="ps-2" style={{ color: "#006996" }}>
-                            Status
-                            </td>
-                        </tr>
-                        </thead>
-                        <tbody style={{backgroundColor:'#cce6ff'}}>
-                        {dataDocs.map((item,index) => (
-                            <tr key={index} onClick={()=>handleRow(item.id)} className=" text-center mt-2 py-2 bg-primary" style={{ testWrap: "nowrap",backgroundColor:"#cce6ff" }}>
-                            <td className="p-2">{item.id}</td>
-                                
-                            <td className="p-2" style={{ textWrap: "nowrap" }}>
-                            {item.title}
-                            </td>
-                            <td className="p-2">{item.date}</td>
-                            <td className="p-2">{item.postedBy}</td>
-                            <td className="p-2" >
-                                <button className="btn btn-primary " style={{width:"130px",height:"30px"}}>
-                                <FaDownload className="pb-1"/>
-                                <span className="px-2 pb-2">Download</span>
-                                </button>
-                            </td>
-                            </tr>
+                <div className="table-responsive  w-100  mt-4" style={{ height: "auto", overflow: "scroll" }}>
+                    <div className="d-flex flex-column mx-auto" style={{ width: "100%", minWidth: "350px", overflowX: "scroll" }}>
+                    <div className="w-100 d-flex align-items-center flex-column justify-content-center" style={{ minWidth: "100%" }}>
+                        <div className="d-flex justify-content-around bg-dark text-white align-items-center  mb-2  py-1 shadow" style={{ width: "100%", minWidth: "750px", height: "50px" }}>
+                        <div className="" style={{width:"30px"}}>S.no</div>
+                        <div className="d-flex align-items-center" style={{ minWidth: "200px" }}>
+                            <span className="">Document Title</span>
+                            <RiExpandUpDownFill />
+                        </div>
+                        <div className="d-flex align-items-center" style={{ minWidth: "140px" }}>
+                            <span className="">View</span>
+                            <RiExpandUpDownFill />
+                        </div>
+                        </div>
+                        {pdfUrls.map((pdfUrl, index) => (
+                        <div key={index} className="d-flex justify-content-around   align-items-center  mb-2  py-1 shadow" style={{ width: "100%", minWidth: "750px", height: "50px" }}>
+                            <div style={{width:"30px"}}>{index + 1}</div>
+                            <div className="d-flex align-items-center" style={{ minWidth: "200px" }}>
+                                <span className="">{dataArray[0].title}</span>
+                            </div>
+                            <div className="d-flex align-items-center" style={{ minWidth: "140px" }}>
+                                <a href={pdfUrl} target="_blank" rel="noopener noreferrer">View PDF</a>
+                            </div>
+                        </div>
                         ))}
-                        </tbody>
-                    </table>
+                    </div>
+                    </div>
                 </div>
             </>
         )
@@ -187,10 +223,32 @@ const ClientDetails = () => {
     const EditData = () => {
         return (
             <>
-                <div className="w-100 d-flex flex-column justify-content-center align-items-center" style={{height:"400px"}}>
-                    <img src={image404} alt=""  style={{width:"300px"}}/>
-                    <div className="text-center">oops!...work in progress</div>
-                </div>
+                <form className="resource-form shadow d-flex flex-column ps-3 py-3 mx-auto"
+                    style={{
+                        width: '97%',
+                        maxWidth: '450px',
+                        backgroundColor: '#F7FFFF',
+                    }}
+                    
+                    >
+                    <span className="mt-3">
+                        <label htmlFor="name" className="ps-2">Name</label>
+                        <input type="text" name="name" placeholder="Client Name" onChange={handleChange} required />
+                    </span>
+
+                    <span className="mt-3">
+                        <label htmlFor="email" className="ps-2">Email</label>
+                        <input type="email" name="email" placeholder="Client Email" onChange={handleChange} required />
+                    </span>
+                    <span className="mt-3">
+                        <label htmlFor="contact" className="ps-2">Email</label>
+                        <input type="number" name="contact" placeholder="Client Email" onChange={handleChange} required />
+                    </span>
+                    <span className="mt-3">
+                        <input type="submit"  value="submit" style={{ backgroundColor: '#006996', color: 'white' }}/>
+                    </span>
+
+            </form>
             </>
         )
     }
@@ -221,7 +279,7 @@ const ClientDetails = () => {
 
 
     
-    const [tab,setTab] = useState("Details")
+    const [tab,setTab] = useState("Documents")
     const {clientName} = useParams()
 
 
@@ -267,13 +325,7 @@ const ClientDetails = () => {
                         height:"auto",
                         minHeight:"70vh"
                     }}>
-                        <div className="w-100 d-flex align-items-center mt-3 justify-content-start" style={{minWidth:"300px",overflowX:"scroll",height:"50px"}}>
-                            <div className={`mx-3 ${tab=="Edit"?"tab-active":""}`} onClick={()=>{setTab("Edit")}}>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <span className="px-2">Edit</span>
-                                    <PiCaretUpDownThin /> 
-                                </div>
-                            </div>
+                        <div className="w-100 d-flex align-items-center mt-3 justify-content-start" style={{minWidth:"300px",overflowX:"scroll",height:"50px"}}>    
                             <div className={`mx-3 ${tab=="Documents"?"tab-active":""}`} onClick={()=>{setTab("Documents")}}>
                                 <div className="d-flex justify-content-between align-items-center">
                                     <span className="px-2">Documents</span>
@@ -324,8 +376,15 @@ const ClientDetails = () => {
                     </div>
                     <div className=" col-11 col-md-5 col-lg-5  mx-auto card d-flex flex-column shadow" style={{
                     }}> 
-                        <h1 className="h1 m-3 px-2" style={{fontWeight:"700",borderLeft:"8px solid #006996"}}>Client Details</h1>
-                        <DetailsClient />
+                        <div className="d-flex w-100 align-items-center justify-content-between">
+                            <h1 className="h1 m-3 px-2" style={{fontWeight:"700",borderLeft:"8px solid #006996"}}>Client Details</h1>
+                            <div className="d-flex align-items-center">
+                                <button className=" btn btn-outline-primary" onClick={()=>{setRight("edit")}}>Edit</button>
+                                <button className=" btn btn-outline-primary mx-3" onClick={()=>{setRight("details")}} >Details</button>
+                            </div>
+                        </div>
+                        {right=="details" && <DetailsClient />}
+                        {right=="edit" && <EditData />}
                     </div>
                     
                     

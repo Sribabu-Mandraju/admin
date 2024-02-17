@@ -1,18 +1,49 @@
 import { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Axios from 'axios';
+import axios from 'axios';
 import '../App.css'
 
 const Documentation = () => {
   const navigate = useNavigate();
+  const [clients,setClients] = useState([])
   const [fileData, setFileData] = useState(null);
+  const [token,setToken] = useState("")
   const [resourceData, setResourceData] = useState({
     title:'',
-    author:'',
     file: null,
-    likes: 0,
-    categiry:'',
+    sendTo:""
   });
+  
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const getToken = localStorage.getItem("token");
+        console.log("Token:", getToken); // Log token for debugging
+        setToken(getToken);
+  
+        const result = await axios.get("http://localhost:8080/admin/client/all-clients", {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${token}`
+          }
+        });
+        console.log("Response:", result.data); 
+  
+        if (result.status !== 200) {
+          throw new Error('Network response was not ok');
+        }
+  
+        setClients(result.data);
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+  
+    fetchData();
+  }, [token]);
+
 
   const handleForm = (e) => {
     const newData = { ...resourceData };
@@ -27,8 +58,25 @@ const Documentation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('file', resourceData.file);
-    console.log(resourceData)
+    formData.append('title', resourceData.title);
+    formData.append('user_email', resourceData.sendTo);
+    formData.append('pdf_file', resourceData.file);
+    console.log(formData)
+
+    try{
+      
+      const response = await axios.post("http://localhost:8080/client/uploadPdf",formData,{
+        headers:{
+          "Content-Type":"multipart/form-data"
+        }
+      })
+      if(response.status==200){
+        console.log("response",response.data)
+      }
+    }
+    catch(err){
+      console.log(err)
+    }
 
    
   };
@@ -56,28 +104,24 @@ const Documentation = () => {
         }}
       >
         <span className="mt-3">
-          <label htmlFor="bTitle" className="ps-2">
+          <label htmlFor="title" className="ps-2">
             Title
           </label>
           <input type="text" name="title" placeholder="Title of the book" value={resourceData.title} onChange={handleForm} required />
         </span>
 
         <span className="mt-3">
-          <label htmlFor="bAuthor" className="ps-2">
-            Send by
-          </label>
-          <input type="text" name="author" placeholder="Author of the book" value={resourceData.author} onChange={handleForm} required />
-        </span>
-
-        <span className="mt-3">
-          <label htmlFor="bCategiry" className="ps-2">
-            Document Type
-          </label>
-          <select name="categiry" id="categiry" className="form-select" value={resourceData.categiry} onChange={handleForm} required>
-            <option value="">-- Select --</option>
-            <option value="ALL">ALL</option>
-          </select>
-        </span>
+                    <label htmlFor="sendTo" className="ps-2">Send to</label>
+                    <select name="sendTo" id="" onChange={handleForm}>
+                        <option className="pe-4" value="">--SELECT--</option>
+                        {
+                            clients.map((data) => (
+                                <option value={data.email} className="">{data.email}</option>
+                            ))
+                        }
+                    </select>
+          </span>
+        
 
         <span className="mt-3">
           <label htmlFor="bFile" className="ps-2">

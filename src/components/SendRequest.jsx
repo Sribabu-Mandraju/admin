@@ -9,7 +9,7 @@ const SendRequest = () => {
     const [token, setToken] = useState('');
     const [clients,setClients] = useState([])
     const [notice, setNotice] = useState({
-        title:"",
+        name:"",
         short_discription: "",
         discription: "", 
         postedTo: "",
@@ -54,6 +54,7 @@ const SendRequest = () => {
       }, [token]);
 
     const handleSubmit = async (e) => {
+        e.preventDefault()
         try {
             const response = await axios.post(
                 'http://localhost:8080/admin/sendRequest',
@@ -68,7 +69,7 @@ const SendRequest = () => {
             if (response.status === 200) {
                 alert('Request successfully sent');
                 console.log(notice)
-                Navigate("/home")
+                window.location.reload(); 
             }
         } catch (err) {
             console.log(err);
@@ -95,8 +96,8 @@ const SendRequest = () => {
                 onSubmit={handleSubmit}
             >
                 <span className="mt-3">
-                    <label htmlFor="title" className="ps-2">Title</label>
-                    <input type="text" name="title" placeholder="Title of the request" onChange={handleChange} required />
+                    <label htmlFor="name" className="ps-2">Title</label>
+                    <input type="text" name="name" placeholder="Title of the request" onChange={handleChange} required />
                 </span>
 
                 <span className="mt-3">
