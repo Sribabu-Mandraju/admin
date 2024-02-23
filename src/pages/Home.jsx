@@ -13,8 +13,7 @@ import SendNotice from '../components/sendNotice';
 import Clients from '../components/Clients'
 import SendRequest from '../components/SendRequest';
 import Documents from '../components/Documents';
-import PdfViewer from '../components/FetchFile';
-import ApiWork from '../components/APiWork';
+// import PdfViewer from '../components/FetchFile';
 
 import { TbBellRingingFilled } from "react-icons/tb";
 import { FiSearch } from "react-icons/fi";
@@ -44,7 +43,6 @@ const Home = () => {
     {tab:"clients",tabName:"Clients",icon:<MdOutlineGroups />},
     {tab:"sendRequest",tabName:"Send Request",icon:<MdOutlineGroups />},
     {tab:"sendDocument",tabName:"Send Document",icon:<MdOutlineGroups />},
-    {tab:"pdf-viewer",tabName:"documents",icon:<MdOutlineGroups />}
     
   ]
   const [tab, setTab] = useState('dashboard');
@@ -249,7 +247,6 @@ const Home = () => {
         {tab=="documentsList" && <Documents />}
         {tab=="sendRequest" && <SendRequest />}
         {tab=="sendDocument" && <Documentation />}
-        {tab=="pdf-viewer" && <PdfViewer />}
       </div>
 
     </div>

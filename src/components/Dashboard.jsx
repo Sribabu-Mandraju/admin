@@ -3,7 +3,7 @@ import { AiOutlineDashboard } from "react-icons/ai";
 import { FiSearch } from "react-icons/fi";
 import { RiExpandUpDownFill } from "react-icons/ri";
 import axios from 'axios';
-import CustomModal2 from "./Modal2";
+// import CustomModal from "./Modal";
 import { formatDistanceToNow } from 'date-fns';
 
 const Dashboard = () => {
@@ -14,6 +14,11 @@ const Dashboard = () => {
   const [search, setSearch] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+
+
+
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,6 +82,21 @@ const Dashboard = () => {
 
   const closeModal = () => {
     setShowModal(false);
+  };
+
+  const CustomModal = ({ showModal, closeModal, children }) => {
+    if (!showModal) {
+      return null;
+    }
+  
+    return (
+      <div className="modal-overlay">
+        <div className="modal">
+          <button className="modal-close" onClick={closeModal}>Close</button>
+          {children}
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -146,17 +166,20 @@ const Dashboard = () => {
                     {data.short_discription}
                   </div>
                   <div className="d-flex align-items-center" style={{ minWidth: "100px" }}>
-                    <button className=" badge text-dark btn btn-outline-primary" onClick={openModal}>Info</button>
+                    <button className=" badge text-dark btn btn-outline-primary" onClick={() => handleRowClick(data)}>Info</button>
                   </div>
+                  
                   <div className={`pe-4 d-flex align-items-center `} style={{ minWidth: "100px" }}>
                     <div className={`badge ${getStatusBadgeColor(data.status_review)} ${data.status_review === "Approved" || "approved" ? "bg-success" : "bg-danger"}`}>{data.status_review}</div>
                   </div>
                 </div>
                 
+                
               ))}
             </div>
           </div>
         </div>
+        
       </section>{
         
       }

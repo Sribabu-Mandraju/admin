@@ -35,6 +35,9 @@ const ClientDetails = () => {
         contact:""
     })
 
+    const openPdfInNewTab = (pdfUrl) => {
+        window.open(`${pdfUrl}#toolbar=0`, '_blank');
+      };
     const handleChange = (e) => {
         const formData = {...createClient}
         formData[e.target.name] = e.target.value
@@ -104,6 +107,9 @@ const ClientDetails = () => {
     
       useEffect(()=> {
         getPdf()
+        window.addEventListener('contextmenu', function (event) {
+            event.preventDefault();
+          });
         
       },[])
         console.log("me")
@@ -186,6 +192,7 @@ const ClientDetails = () => {
     }
 
     const DocumentsClient = () => {
+
         return (
             <>
                 <div className="table-responsive  w-100  mt-4" style={{ height: "auto", overflow: "scroll" }}>
@@ -209,7 +216,7 @@ const ClientDetails = () => {
                                 <span className="">{dataArray[0].title}</span>
                             </div>
                             <div className="d-flex align-items-center" style={{ minWidth: "140px" }}>
-                                <a href={pdfUrl} target="_blank" rel="noopener noreferrer">View PDF</a>
+                                <Link to={`/clients/pdf/${pdfUrl}`}>View</Link>
                             </div>
                         </div>
                         ))}
